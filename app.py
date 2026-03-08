@@ -5,17 +5,17 @@ import re
 st.set_page_config(page_title="AI Resume Analyzer", page_icon="📄")
 
 st.title("📄 AI Resume Analyzer")
-st.write("Upload resume and compare it with job description")
+st.write("Upload your resume and compare it with the job description")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 job_description = st.text_area("Paste Job Description")
 
-# Common skills list
-skills_db = [
-    "python","excel","sql","communication","leadership","recruitment",
-    "data analysis","machine learning","hr","talent acquisition",
-    "screening","sourcing","interview","management","training"
-]
+# words jo ignore karne hain
+stopwords = {
+    "the","and","for","with","this","that","from","have","has","had",
+    "will","shall","can","could","would","should","your","their",
+    "about","into","over","under","also","such","many","more"
+}
 
 def extract_text(file):
     reader = PyPDF2.PdfReader(file)
@@ -28,6 +28,7 @@ def extract_text(file):
 
 def clean_words(text):
     words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
+    words = [w for w in words if w not in stopwords and len(w) > 3]
     return set(words)
 
 
@@ -50,26 +51,30 @@ if st.button("Analyze Resume"):
         st.progress(score / 100)
         st.metric("Match Score", f"{score}%")
 
-        # Skill detection
-        detected_skills = [skill for skill in skills_db if skill in resume_text.lower()]
-
-        st.subheader("🧠 Detected Skills")
-
-        if detected_skills:
-            for skill in detected_skills:
-                st.write("✔️", skill)
+        if score >= 70:
+            st.success("Strong match for this job role")
+        elif score >= 40:
+            st.warning("Moderate match – candidate may need improvement")
         else:
-            st.write("No skills detected")
+            st.error("Low match – resume may not fit this role")
 
         st.subheader("✅ Matching Keywords")
 
-        for word in list(matches)[:10]:
-            st.write("•", word)
+        if matches:
+            cols = st.columns(2)
+            for i, word in enumerate(list(matches)[:10]):
+                cols[i % 2].write("✔️ " + word)
+        else:
+            st.write("No strong keyword matches found")
 
         st.subheader("❌ Missing Keywords")
 
-        for word in list(missing)[:10]:
-            st.write("•", word)
+        if missing:
+            cols2 = st.columns(2)
+            for i, word in enumerate(list(missing)[:10]):
+                cols2[i % 2].write("❌ " + word)
+        else:
+            st.write("No missing keywords detected")
 
     else:
-        st.warning("Upload resume and paste job description")
+        st.warning("Please upload resume and paste job description")

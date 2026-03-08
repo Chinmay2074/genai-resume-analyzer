@@ -1,23 +1,21 @@
 import streamlit as st
 import PyPDF2
-import re
 
 st.set_page_config(page_title="AI Resume Analyzer", page_icon="📄")
 
-st.title("📄 AI Resume Analyzer")
-st.write("Upload your resume and compare it with the job description")
+st.title("🤖 AI Resume Analyzer")
+st.write("Analyze resume against job description and get improvement suggestions")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 job_description = st.text_area("Paste Job Description")
 
-# Common useless words remove karne ke liye
-stopwords = {
-"the","and","for","with","this","that","from","have","has","had",
-"will","shall","can","could","would","should","your","their",
-"about","into","over","under","also","such","many","more",
-"through","within","using","used","work","worked","working",
-"in","on","at","to","a","an","of"
-}
+skills_db = [
+"python","excel","sql","communication","leadership","recruitment",
+"hr","talent acquisition","training","management","analytics",
+"data analysis","sourcing","screening","interview","payroll",
+"labor law","employee engagement","hr analytics","performance management"
+]
+
 
 def extract_text(file):
     reader = PyPDF2.PdfReader(file)
@@ -28,56 +26,76 @@ def extract_text(file):
     return text
 
 
-def clean_words(text):
-    words = re.findall(r'\b[a-zA-Z]+\b', text.lower())
-
-    # stopwords remove + short words remove
-    words = [w for w in words if w not in stopwords and len(w) > 3]
-
-    return set(words)
-
-
 if st.button("Analyze Resume"):
 
     if uploaded_file and job_description:
 
-        resume_text = extract_text(uploaded_file)
+        resume_text = extract_text(uploaded_file).lower()
+        jd_text = job_description.lower()
 
-        resume_words = clean_words(resume_text)
-        jd_words = clean_words(job_description)
+        resume_skills = [skill for skill in skills_db if skill in resume_text]
+        jd_skills = [skill for skill in skills_db if skill in jd_text]
 
-        matches = resume_words.intersection(jd_words)
-        missing = jd_words - resume_words
+        matched = set(resume_skills).intersection(jd_skills)
+        missing = set(jd_skills) - set(resume_skills)
 
-        score = int((len(matches) / len(jd_words)) * 100)
+        if jd_skills:
+            score = int((len(matched) / len(jd_skills)) * 100)
+        else:
+            score = 0
 
-        st.subheader("📊 Resume Analysis Result")
+        st.subheader("📊 Resume Match Score")
 
         st.progress(score / 100)
         st.metric("Match Score", f"{score}%")
 
-        st.subheader("🧠 Detected Skills")
+        st.subheader("🧠 Skills Detected in Resume")
 
-        skills_db = [
-            "python","excel","sql","communication","leadership","recruitment",
-            "hr","training","management","analytics","data","sourcing",
-            "screening","interview","payroll","talent"
-        ]
-
-        detected_skills = [skill for skill in skills_db if skill in resume_text.lower()]
-
-        for skill in detected_skills:
+        for skill in resume_skills:
             st.write("✔️", skill)
 
-        st.subheader("✅ Matching Keywords")
+        st.subheader("✅ Matched Skills")
 
-        for word in list(matches)[:10]:
-            st.write("✔️", word)
+        if matched:
+            for skill in matched:
+                st.write("✔️", skill)
+        else:
+            st.write("No matching skills found")
 
-        st.subheader("❌ Missing Keywords")
+        st.subheader("❌ Missing Skills")
 
-        for word in list(missing)[:10]:
-            st.write("❌", word)
+        if missing:
+            for skill in missing:
+                st.write("❌", skill)
+        else:
+            st.write("No missing skills")
+
+        st.subheader("🤖 AI Resume Improvement Suggestions")
+
+        suggestions = []
+
+        if score < 40:
+            suggestions.append("Add more relevant skills from the job description.")
+            suggestions.append("Include specific achievements in your resume.")
+            suggestions.append("Use strong action verbs like 'managed', 'implemented', 'led'.")
+        
+        if missing:
+            suggestions.append("Consider adding these skills: " + ", ".join(list(missing)[:5]))
+
+        if not suggestions:
+            suggestions.append("Your resume matches well with the job description.")
+
+        for tip in suggestions:
+            st.write("💡", tip)
+
+        st.subheader("💼 HR Recommendation")
+
+        if score >= 70:
+            st.success("Strong candidate – suitable for interview")
+        elif score >= 40:
+            st.warning("Moderate match – candidate may need some improvements")
+        else:
+            st.error("Low match – resume may not fit this role")
 
     else:
-        st.warning("Please upload resume and paste job description")
+        st.warning("Upload resume and paste job description")

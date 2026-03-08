@@ -1,2 +1,8 @@
-# genai-resume-analyzer
-GenAI tool that analyzes resume and job description
+# GenAI Resume Analyzer
+
+This project analyzes resume and job description.
+
+Tech used:
+Python
+Streamlit
+Generative AI concept

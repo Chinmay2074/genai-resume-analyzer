@@ -1,11 +1,10 @@
 import streamlit as st
 import PyPDF2
-import pandas as pd
 
-st.set_page_config(page_title="AI Resume Analyzer", page_icon="🤖")
+st.set_page_config(page_title="AI Resume Analyzer", page_icon="📄")
 
-st.title("🤖 AI Resume Analyzer (ATS Checker)")
-st.write("Upload your resume and compare it with a job description.")
+st.title("📄 AI Resume Analyzer")
+st.write("Upload your resume and analyze it against the job description.")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 job_description = st.text_area("Paste Job Description")
@@ -41,71 +40,95 @@ if st.button("Analyze Resume"):
 
         score = int((len(matched) / len(jd_skills)) * 100) if jd_skills else 0
 
-        st.subheader("📊 ATS Match Score")
+        st.subheader("📊 ATS Score")
         st.progress(score/100)
-        st.metric("ATS Score", f"{score}%")
+        st.metric("Resume Match", f"{score}%")
 
         st.divider()
 
-        col1, col2 = st.columns(2)
+        # Resume summary
+        st.subheader("📄 Resume Summary")
 
-        with col1:
-            st.subheader("✅ Matched Skills")
-            if matched:
-                for s in matched:
-                    st.success(s)
-            else:
-                st.write("No matched skills")
+        if resume_skills:
+            summary = f"This candidate demonstrates experience in {', '.join(resume_skills[:4])}."
+        else:
+            summary = "Limited recognizable skills found in the resume."
 
-        with col2:
-            st.subheader("❌ Missing Skills")
-            if missing:
-                for s in missing:
-                    st.error(s)
-            else:
-                st.write("No missing skills")
+        st.write(summary)
 
         st.divider()
 
-        st.subheader("📈 Skill Comparison")
+        # Top skills
+        st.subheader("🧠 Top Skills Found")
 
-        chart_data = pd.DataFrame({
-            "Category": ["Matched Skills", "Missing Skills"],
-            "Count": [len(matched), len(missing)]
-        })
-
-        st.bar_chart(chart_data.set_index("Category"))
+        if resume_skills:
+            for skill in resume_skills[:6]:
+                st.success(skill)
+        else:
+            st.write("No major skills detected")
 
         st.divider()
 
-        st.subheader("💡 Resume Improvement Tips")
+        # Strengths
+        st.subheader("💪 Strengths")
+
+        if matched:
+            for skill in matched:
+                st.write(f"• Strong alignment with **{skill}**")
+        else:
+            st.write("No strong alignment with job description")
+
+        st.divider()
+
+        # Improvements
+        st.subheader("⚠ Areas to Improve")
 
         if missing:
-            st.write("Add these skills if relevant:")
-            for s in missing[:5]:
-                st.write(f"• {s}")
-
-        st.write("• Use measurable achievements in experience.")
-        st.write("• Add action verbs like *managed, implemented, led*.")
-        st.write("• Highlight relevant projects and tools.")
+            for skill in missing[:5]:
+                st.write(f"• Consider adding **{skill}** to your resume")
+        else:
+            st.success("No major skill gaps detected")
 
         st.divider()
 
+        # Resume length check
+        st.subheader("📏 Resume Length Check")
+
+        word_count = len(resume_text.split())
+
+        if word_count < 200:
+            st.warning("Resume may be too short. Consider adding more details.")
+        elif word_count > 1000:
+            st.warning("Resume may be too long. Try to keep it concise.")
+        else:
+            st.success("Good resume length detected.")
+
+        st.divider()
+
+        # Keyword coverage
+        st.subheader("🔍 Keyword Coverage")
+
+        st.write(f"{len(matched)} out of {len(jd_skills)} job keywords found in the resume.")
+
+        st.divider()
+
+        # Interview questions
         st.subheader("🎯 Possible Interview Questions")
 
         for skill in matched[:3]:
-            st.write(f"• Tell me about your experience with {skill}.")
+            st.write(f"• Tell me about your experience with **{skill}**.")
 
         st.divider()
 
+        # Recruiter insight
         st.subheader("🧠 Recruiter Insight")
 
         if score >= 70:
-            st.success("Strong candidate match for this role.")
+            st.success("Strong candidate match for the role.")
         elif score >= 40:
-            st.warning("Moderate candidate match.")
+            st.warning("Moderate alignment with job requirements.")
         else:
-            st.error("Low alignment with job requirements.")
+            st.error("Resume needs improvement for this role.")
 
     else:
         st.warning("Please upload resume and paste job description.")

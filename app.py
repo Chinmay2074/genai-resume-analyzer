@@ -26,8 +26,14 @@ if st.button("Analyze Resume"):
         try:
             genai.configure(api_key=api_key)
 
-            # ✅ FIX: "gemini-pro" deprecated hai, ab "gemini-1.5-flash" use karo
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            # Multiple model names try karo (library version ke hisaab se)
+            model = None
+            for name in ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]:
+                try:
+                    model = genai.GenerativeModel(name)
+                    break
+                except Exception:
+                    continue
 
             resume_text = extract_text_from_pdf(uploaded_file)
 
@@ -58,6 +64,7 @@ if st.button("Analyze Resume"):
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
+            st.info("💡 Fix karo: Terminal mein yeh run karo → `pip install --upgrade google-generativeai`")
 
     else:
         st.warning("⚠️ Please provide API Key, upload resume, and paste job description.")

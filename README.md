@@ -42,6 +42,7 @@ genai-resume-analyzer
 Clone the repository
 
 git clone https://github.com/Chinmay2074/genai-resume-analyzer?tab=readme-ov-file
+
 Go to the project directory
 
 cd genai-resume-analyzer

@@ -4,8 +4,8 @@ import pandas as pd
 
 st.set_page_config(page_title="AI Resume Analyzer", page_icon="🤖")
 
-st.title("🤖 AI Resume Analyzer")
-st.write("Analyze your resume against a job description and get insights.")
+st.title("🤖 AI Resume Analyzer (ATS Checker)")
+st.write("Upload your resume and compare it with a job description.")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 job_description = st.text_area("Paste Job Description")
@@ -41,9 +41,9 @@ if st.button("Analyze Resume"):
 
         score = int((len(matched) / len(jd_skills)) * 100) if jd_skills else 0
 
-        st.subheader("📊 Resume Match Score")
+        st.subheader("📊 ATS Match Score")
         st.progress(score/100)
-        st.metric("Match Score", f"{score}%")
+        st.metric("ATS Score", f"{score}%")
 
         st.divider()
 
@@ -67,35 +67,34 @@ if st.button("Analyze Resume"):
 
         st.divider()
 
-        st.subheader("📈 Skill Comparison Chart")
+        st.subheader("📈 Skill Comparison")
 
-        data = {
-            "Category":["Matched Skills","Missing Skills"],
-            "Count":[len(matched),len(missing)]
-        }
+        chart_data = pd.DataFrame({
+            "Category": ["Matched Skills", "Missing Skills"],
+            "Count": [len(matched), len(missing)]
+        })
 
-        df = pd.DataFrame(data)
-
-        st.bar_chart(df.set_index("Category"))
+        st.bar_chart(chart_data.set_index("Category"))
 
         st.divider()
 
-        st.subheader("💡 Resume Improvement Suggestions")
+        st.subheader("💡 Resume Improvement Tips")
 
         if missing:
-            st.write("• Add these skills if relevant:")
+            st.write("Add these skills if relevant:")
             for s in missing[:5]:
-                st.write(f"  - {s}")
+                st.write(f"• {s}")
 
-        st.write("• Add measurable achievements in work experience.")
-        st.write("• Use strong action verbs like *managed, led, implemented*.")
+        st.write("• Use measurable achievements in experience.")
+        st.write("• Add action verbs like *managed, implemented, led*.")
+        st.write("• Highlight relevant projects and tools.")
 
         st.divider()
 
         st.subheader("🎯 Possible Interview Questions")
 
         for skill in matched[:3]:
-            st.write(f"• Can you describe your experience with {skill}?")
+            st.write(f"• Tell me about your experience with {skill}.")
 
         st.divider()
 
@@ -109,4 +108,4 @@ if st.button("Analyze Resume"):
             st.error("Low alignment with job requirements.")
 
     else:
-        st.warning("Upload resume and paste job description.")
+        st.warning("Please upload resume and paste job description.")

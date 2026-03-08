@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 st.title("AI Resume Analyzer")
 
-api_key = st.text_input("AIzaSyCGVqPHkyEjv3SI1KGBBs9FFh7s-HRZkKI")
+api_key = st.text_input("Enter your Api key")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 

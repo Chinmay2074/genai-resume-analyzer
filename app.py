@@ -1,27 +1,52 @@
 import streamlit as st
+import PyPDF2
+import google.generativeai as genai
 
-st.title("GenAI Resume Analyzer")
+st.title("AI Resume Analyzer")
 
-resume = st.text_area("Paste Resume")
-jd = st.text_area("Paste Job Description")
+api_key = st.text_input("Enter Gemini API Key")
 
-if st.button("Analyze"):
+uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 
-    if resume and jd:
+job_description = st.text_area("Paste Job Description")
 
-        resume_words = set(resume.lower().split())
-        jd_words = set(jd.lower().split())
+def extract_text_from_pdf(file):
+    reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
 
-        match = resume_words.intersection(jd_words)
+if st.button("Analyze Resume"):
 
-        score = int((len(match) / len(jd_words)) * 100)
+    if api_key and uploaded_file and job_description:
 
-        st.subheader("Analysis Result")
+        genai.configure(api_key=api_key)
 
-        st.write("Match Score:", score, "%")
+        model = genai.GenerativeModel("gemini-pro")
 
-        st.write("Matching Keywords:")
-        st.write(list(match)[:10])
+        resume_text = extract_text_from_pdf(uploaded_file)
+
+        prompt = f"""
+        Analyze the resume against the job description.
+
+        Resume:
+        {resume_text}
+
+        Job Description:
+        {job_description}
+
+        Give:
+        1. Match Score
+        2. Key Skills
+        3. Missing Skills
+        4. Suggestions
+        """
+
+        response = model.generate_content(prompt)
+
+        st.subheader("AI Analysis")
+        st.write(response.text)
 
     else:
-        st.write("Please paste resume and job description")
+        st.warning("Please upload resume, job description and API key")

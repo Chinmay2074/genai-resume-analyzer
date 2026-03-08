@@ -2,9 +2,9 @@ import streamlit as st
 import PyPDF2
 import google.generativeai as genai
 
-st.title("AI Resume Analyzer")
+st.title("🧠 AI Resume Analyzer")
 
-api_key = st.text_input("Enter your Api key")
+api_key = st.text_input("Enter Gemini API Key", type="password")
 
 uploaded_file = st.file_uploader("Upload Resume PDF", type="pdf")
 
@@ -14,39 +14,50 @@ def extract_text_from_pdf(file):
     reader = PyPDF2.PdfReader(file)
     text = ""
     for page in reader.pages:
-        text += page.extract_text()
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted
     return text
 
 if st.button("Analyze Resume"):
 
     if api_key and uploaded_file and job_description:
 
-        genai.configure(api_key=api_key)
+        try:
+            genai.configure(api_key=api_key)
 
-        model = genai.GenerativeModel("gemini-pro")
+            # ✅ FIX: "gemini-pro" deprecated hai, ab "gemini-1.5-flash" use karo
+            model = genai.GenerativeModel("gemini-1.5-flash")
 
-        resume_text = extract_text_from_pdf(uploaded_file)
+            resume_text = extract_text_from_pdf(uploaded_file)
 
-        prompt = f"""
-        Analyze the resume against the job description.
+            if not resume_text.strip():
+                st.error("Resume se text extract nahi hua. Please check your PDF.")
+            else:
+                prompt = f"""
+                Analyze the resume against the job description and provide a detailed report.
 
-        Resume:
-        {resume_text}
+                Resume:
+                {resume_text}
 
-        Job Description:
-        {job_description}
+                Job Description:
+                {job_description}
 
-        Give:
-        1. Match Score
-        2. Key Skills
-        3. Missing Skills
-        4. Suggestions
-        """
+                Give:
+                1. Match Score (out of 100)
+                2. Key Matching Skills
+                3. Missing Skills
+                4. Improvement Suggestions
+                """
 
-        response = model.generate_content(prompt)
+                with st.spinner("Analyzing your resume..."):
+                    response = model.generate_content(prompt)
 
-        st.subheader("AI Analysis")
-        st.write(response.text)
+                st.subheader("📊 AI Analysis")
+                st.write(response.text)
+
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
 
     else:
-        st.warning("Please upload resume, job description and API key")
+        st.warning("⚠️ Please provide API Key, upload resume, and paste job description.")

@@ -1,8 +1,29 @@
-# GenAI Resume Analyzer
+# 🤖 AI Resume Analyzer
 
-This project analyzes resume and job description.
+A Generative AI powered web application that analyzes a candidate's resume and compares it with a given job description. The tool provides insights such as match score, key skills, missing skills, and improvement suggestions.
 
-Tech used:
-Python
-Streamlit
-Generative AI concept
+---
+
+## 🚀 Features
+
+- Upload Resume in **PDF format**
+- Paste **Job Description**
+- AI analyzes resume using **Google Gemini**
+- Generates:
+  - Match Score
+  - Key Skills
+  - Missing Skills
+  - Improvement Suggestions
+
+---
+
+## 🛠 Tech Stack
+
+- **Python**
+- **Streamlit**
+- **Google Gemini AI**
+- **PyPDF2**
+
+---
+
+## 📂 Project Structure
